@@ -1,0 +1,45 @@
+<#
+.SYNOPSIS
+    This PowerShell script configures the system to enforce a minimum password length of 14 characters to comply with Windows STIG requirements.
+
+.NOTES
+    Author          : Ashraf
+    LinkedIn        : https://www.linkedin.com/in/ashrafjamaal98/
+    GitHub          : https://github.com/DragonFlyzlip/
+    Date Created    : 2025-04-30
+    Last Modified   : 2025-04-30
+    Version         : 1.0
+    CVEs            : N/A
+    Plugin IDs      : N/A
+    STIG-ID         : WN10-AC-000035
+
+.TESTED ON
+    Date(s) Tested  : 
+    Tested By       : 
+    Systems Tested  : 
+    PowerShell Ver. : 
+
+.USAGE
+    Run this script with administrative privileges.
+    Example:
+    PS C:\> .\WN10-AC-000035.ps1
+#>
+
+# Remediation: Set minimum password length to 14 characters
+# This creates a temp config, modifies it, and applies it via secedit
+
+# Ensure temp directory exists
+$tempPath = "C:\temp"
+if (!(Test-Path $tempPath)) {
+    New-Item -Path $tempPath -ItemType Directory | Out-Null
+}
+
+# Export current security policy
+secedit /export /cfg "$tempPath\secpol.cfg"
+
+# Update the MinimumPasswordLength setting
+(Get-Content "$tempPath\secpol.cfg").replace("MinimumPasswordLength = ", "MinimumPasswordLength = 14") | Set-Content "$tempPath\secpol.cfg"
+
+# Apply the updated policy
+secedit /configure /db secedit.sdb /cfg "$tempPath\secpol.cfg" /areas SECURITYPOLICY
+
